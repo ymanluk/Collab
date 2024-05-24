@@ -1,0 +1,396 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Deliverable 3 Test</title>
+
+    <link
+    id="esriStyle"
+    rel="stylesheet"
+    href="https://js.arcgis.com/4.29/esri/themes/light/main.css"
+    />
+
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+      }
+
+      .box {
+        display: flex;
+        flex-flow: column;
+        height: 100%;
+      }
+
+      .box .heading {
+        flex: 0 1 auto;
+      }
+
+      .box #ViewDiv {
+        flex: 1 1 auto;
+      }
+
+      .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+        max-height: 80px;
+        max-width: 476px;
+      }
+
+
+    </style>
+
+  <!-- <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"> -->
+  <script src="https://js.arcgis.com/4.29"></script>
+
+    <script>
+      require([
+        "esri/config",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+        "esri/widgets/LayerList",
+        "esri/widgets/Expand",
+        "esri/widgets/Legend",
+        "esri/widgets/ScaleBar",
+        "esri/widgets/BasemapToggle"
+      ],(esriConfig, Map, MapView, FeatureLayer, LayerList, Expand, Legend, ScaleBar, BasemapToggle)=> {
+
+        const btn = document.getElementById("btnTheme");
+        const sheet = document.getElementById("esriStyle");
+
+        esriConfig.apiKey = "AAPK5b4904cdbfe9434d8ea442d6d25a86bcGSh57y7u3oQJNuc2IoqIbR8ECGeKHsA_yzBPVGdIZSc4jQYKa1xJo3nNvUud57QI";
+        const map = new Map({
+          basemap: "arcgis-streets" //Basemap service
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-78.315, 44.299], 
+          zoom: 17,
+          constraints: {
+            snapToZoom: false
+          }
+        });
+
+
+        //Basemap Gallery
+        let basemapToggle = new BasemapToggle({
+          view: view,
+          nextBasemap: "satellite"
+        });
+
+        // Variable point size
+        const sizeVV = {
+          type: "size",
+          valueExpression: "$view.scale",
+
+          stops: [
+            {size: 16, value: 500},
+            {size: 10, value: 1000},
+            {size: 7, value: 2000},
+            {size: 6, value: 4000},
+            {size: 5, value: 9000},
+            {size: 2.5, value: 18000},
+            {size: 1.5, value: 36000},
+          ]
+        };
+
+
+        //Symbolization
+        const colors = ["#03c04a", "#707070", "#4adede", "#ff7300", "#cc0000", "#4c2512", "#fcfbfc"];
+
+        const commonProperties = {
+          type: "simple-marker",
+          size: "6px",
+          outline: {
+            width: 0.5
+          },
+          style: "circle"
+        };
+
+        // Symbol for active trees
+        const ActiveSym = {
+          ...commonProperties,
+          color: colors[0]
+        };
+
+        // Symbol for removed trees
+        const RemovedSym = {
+          ...commonProperties,
+          color: colors[1]
+        };
+
+        // Symbol for EAB removal
+        const EABRemovalSym = {
+          ...commonProperties,
+          color: colors[2]
+        };
+
+        // Symbol for proposed trees
+        const ProposedSym = {
+          ...commonProperties,
+          color: colors[3]
+        };
+
+        const RefusalSym = {
+          ...commonProperties,
+          color: colors[4]
+        };
+
+        const ConstructionSym = {
+          ...commonProperties,
+          color: colors[5]
+        };
+        
+        // Symbol for re-surveyed trees
+        const otherSym = {
+          ...commonProperties,
+          color: colors[6]
+        };
+
+
+        const treeRenderer = {
+            type: "unique-value", // autocasts as new UniqueValueRenderer()
+            // legendOptions: {
+            //   title: "Tree Status"
+            // },
+            defaultSymbol: otherSym,
+            defaultLabel: "Others (Re-Surveyed/Development Removal/Planting Request/Pending Approval)",
+            field: "STATUS",
+
+            uniqueValueInfos: [
+              {
+                value: "Active", 
+                symbol: ActiveSym,
+                label: "Active"
+              },
+              {
+                value: "Removed", 
+                symbol: RemovedSym,
+                label: "Removed"
+              },
+              {
+                value: "EAB Removal", 
+                symbol: EABRemovalSym,
+                label: "EAB Removal"
+              },
+              {
+                value: "Proposed", 
+                symbol: ProposedSym,
+                label: "Proposed"
+              },
+              {
+                value: "Refusal", 
+                symbol: RefusalSym,
+                label: "Refusal"
+              },
+              {
+                value: "Construction Removal", 
+                symbol: ConstructionSym,
+                label: "Construction Removal"
+              }
+            ],
+
+            visualVariables: [sizeVV]
+
+          };
+
+
+        // Add legend ---obsolete
+        // let layerList = new LayerList({
+        //   view: view
+        // });
+        // // Adds widget below other elements in the top left corner of the view
+        // view.ui.add(layerList, {
+        //   position: "top-right"
+        // });
+
+        //Add layer list
+        const layerList = new LayerList({
+          container: document.createElement("div"),
+          view: view
+        });
+        const layerListExpand = new Expand({
+          expandIcon: "layers",  // see https://developers.arcgis.com/calcite-design-system/icons/
+          // expandTooltip: "Expand LayerList", // optional, defaults to "Expand" for English locale
+          view: view,
+          content: layerList
+        });
+        view.ui.add(layerListExpand, "top-left");
+
+
+        //pop-up template customization
+        const tree_template = {
+          // NAME and COUNTY are fields in the service containing the Census Tract (NAME) and county of the feature
+          title: "{COMMON} - {STATUS}",
+          content: [
+              {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "BOTONICAL",
+                    label: "Botanical Name"
+                  },
+                  {
+                    fieldName: "GENUS",
+                    label: "Genus"
+                  },
+                  {
+                    fieldName: "FAMILY",
+                    label: "Family"
+                  },
+                  {
+                    fieldName: "OWNERSHIP",
+                    label: "Ownership"
+                  },
+                  {
+                    fieldName: "STREET",
+                    label: "Street"
+                  },
+                  {
+                    fieldName: "ZONE",
+                    label: "Zone Number"
+                  },
+                  {
+                    fieldName: "ZONENAME",
+                    label: "Zone Name"
+                  },
+                  {
+                    fieldName: "TREE_LOCAT",
+                    label: "Tree Location"
+                  },
+                  {
+                    fieldName: "INVENTORY_",
+                    label: "Inventory"
+                  },
+                  {
+                    fieldName: "DBH",
+                    label: "Diameter at Breast Height"
+                  },
+                  {
+                    fieldName: "PHYS_COND",
+                    label: "Physical Condition"
+                  }
+                  // {
+                  //   fieldName: "B12001_calc_numDivorcedE",
+                  //   label: "People Divorced",
+                  //   format: {
+                  //     digitSeparator: true,
+                  //     places: 0
+                  //   }
+                  // }
+                ]
+              }
+            ]
+        };
+
+        const ppa_template = {
+          // NAME and COUNTY are fields in the service containing the Census Tract (NAME) and county of the feature
+          title: "Bylaw Zoning: {ByLaw}",
+          content: [
+              {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "ZONENUMBER",
+                    label: "Tree Zone Number"
+                  },
+                  {
+                    fieldName: "ZONENAME",
+                    label: "Tree Zone Name"
+                  },
+                  {
+                    fieldName: "ADDRESS",
+                    label: "Address"
+                  }
+                  // {
+                  //   fieldName: "Shape_area",
+                  //   label: "Area"
+                  //   // format: {
+                  //   //   digitSeparator: true,
+                  //   //   places: 0
+                  //   // }
+                  // }
+                ]
+              }
+            ]
+        };
+
+
+        //Add feature layers
+        const ppaLayer = new FeatureLayer({
+          url: "https://services1.arcgis.com/pMeXRvgWClLJZr3s/arcgis/rest/services/tentative_ppa_layer/FeatureServer",
+          popupTemplate: ppa_template
+        });
+        map.add(ppaLayer);
+
+        const treeLayer = new FeatureLayer({
+          url: "https://services1.arcgis.com/pMeXRvgWClLJZr3s/arcgis/rest/services/tree_inventory_layer/FeatureServer",
+          popupTemplate: tree_template,
+          renderer: treeRenderer
+        });
+        map.add(treeLayer);
+
+
+        view.ui.add(btn, "top-right");
+
+
+        view.ui.add(basemapToggle, "bottom-right")
+
+
+        //Add legend for tree inventory
+        const legend = new Expand({
+          content: new Legend({
+            view: view,
+            style: "classic", // other styles include 'card'
+            layerInfos: [
+              {
+                layer: treeLayer
+              }
+            ]
+          }),
+          expanded: true
+        });
+        view.ui.add(legend, "bottom-left");
+
+
+        //Add Scale Bar
+        let scaleBar = new ScaleBar({
+          view: view
+        });
+        //Add widget to view
+        view.ui.add(scaleBar, {
+          position: "bottom-right"
+        });
+
+
+        let theme = "dark";
+          btn.addEventListener("click", () => {
+            if (theme === "light") {
+              sheet.href = "https://js.arcgis.com/4.29/esri/themes/dark/main.css";
+              theme = "dark";
+            } else if (theme === "dark") {
+              sheet.href =
+                "https://js.arcgis.com/4.29/esri/themes/light/main.css";
+              theme = "light";
+            }
+          });
+          
+      });
+    </script>
+  </head>
+  <body>
+    <div class="box">
+      <div class="Heading">
+        <img src="https://images.squarespace-cdn.com/content/v1/54ff0a95e4b081b61d83e3b2/1537462044541-PQ3VHI7CPB485EH61IJW/City+of+Peterborough+-+Banner.jpg" alt="Peterborough Banner" class="center">
+      </div>
+      <div id="viewDiv">
+        <button id="btnTheme" class="esri-widget">Toggle Theme</button>
+      </div>
+    </div>
+  </body>
+</html>
