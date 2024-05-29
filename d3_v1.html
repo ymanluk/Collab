@@ -1,0 +1,569 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Deliverable 3 Test</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+    }
+
+    .box {
+      display: flex;
+      flex-flow: column;
+      height: 100%;
+    }
+
+    .box .heading {
+      flex: 0 1 auto;
+    }
+
+    .box #ViewDiv {
+      flex: 1 1 auto;
+    }
+
+    .center {
+      display: inline-block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 50%;
+      max-height: 80px;
+      max-width: 476px;
+    }
+
+
+  </style>
+
+<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+
+<script src="https://js.arcgis.com/4.29"></script>
+
+
+
+<script type="text/arcgis-arcade" id="trees-arcade">
+    var attributes = {};
+    var fieldInfos = [];
+    // Query the number of crimes that intersect a selected polygon
+    var trees = Intersects(
+      $feature,
+      FeatureSetByName($map,"Tree Inventory", ["COMMON"])
+    );
+
+    // Queries the count of trees grouped by the "COMMON" field
+    var stats = GroupBy(trees, ["COMMON"],
+      [{ name: "total", expression: "1", statistic: "count" }]
+    );
+
+    // Orders the results in descending order by the total count
+    // excludes trees that don't have a classification
+    var topTrees = Top(OrderBy(Filter(stats, "COMMON <> ''"), "total COMMON"), 5);
+
+    //if(Count(topTrees) == 0){
+      //return {
+        //type: "text",
+        //text: "No trees in this zone"
+      //};
+    //}
+    for(var item in topTrees){
+      var num_trees = item.total;
+      var treeType = item["COMMON"];
+      attributes[treeType] = num_trees;
+      Push(fieldInfos, {
+        fieldName: treeType
+      });
+    }
+
+    return {
+      type: "fields",
+      fieldInfos: fieldInfos,
+      attributes: attributes
+    };
+  </script>
+
+
+
+<script type="text/arcgis-arcade" id="trees-chart">
+    var attributes = {};
+    var totalFields = [];
+    var firstTreeFields = [];
+    var secondTreeFields = [];
+    var thirdTreeFields = [];
+
+    // Query the number of trees that intersect a selected tree zone
+    var trees = Intersects(
+      $feature,
+      FeatureSetByName($map,"Tree Inventory", ["COMMON", "OWNERSHIP", "STATUS"])
+    );
+
+    // Queries the count of crimes grouped by the "COMMON" field
+    var stats = GroupBy(trees, ["COMMON"],
+      [
+        { name: "total", expression: "1", statistic: "count" }
+      ]
+    );
+
+    // Orders the results in descending order by the total count
+    // excludes trees that don't have a classification
+    var topTrees = Top(OrderBy(Filter(stats, "COMMON <> ''"), "total COMMON"), 5);
+
+    if(Count(topTrees) == 0){
+      return {
+        type: "text",
+        text: "No trees in this zone"
+      };
+    }
+
+    var i = 0;
+    for(var t in topTrees){
+      i++;
+      var type = t.COMMON;
+      // var night = t.night;
+      // var daytime = t.total - t.night;
+      attributes[type] = t.total;
+      Push(totalFields, type);
+
+      // var nightFieldName = `Total of crime ${i} that occurred at night`;
+      // var dayFieldName = `Total of crime ${i} that occurred in daytime`;
+
+      //attributes[nightFieldName] = night;
+      //attributes[dayFieldName] = daytime;
+
+      //if(i == 1){
+        //firstCrime = type;
+        //Push(firstCrimeFields, nightFieldName);
+        //Push(firstCrimeFields, dayFieldName);
+      //}
+      //if(i == 2){
+        //secondCrime = type;
+        //Push(secondCrimeFields, nightFieldName);
+        //Push(secondCrimeFields, dayFieldName);
+      //}
+      //if(i == 3){
+        //thirdCrime = type;
+        //Push(thirdCrimeFields, nightFieldName);
+       // Push(thirdCrimeFields, dayFieldName);
+      //}
+    }
+
+    return {
+      type: "media",
+      attributes: attributes,
+      title: "Top 5 Tree Species",
+      mediaInfos: [{
+        type: "piechart",
+        value: {
+          fields: totalFields
+        }
+      }]
+    };
+  </script>
+
+
+
+
+  <script type="text/javascript">
+    require([
+      "esri/config",
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/widgets/LayerList",
+      "esri/widgets/Expand",
+      "esri/widgets/Legend",
+      "esri/widgets/ScaleBar",
+      "esri/widgets/Home",
+      "esri/widgets/BasemapToggle"
+    ],(esriConfig, Map, MapView, FeatureLayer, LayerList, Expand, Legend, ScaleBar, Home, BasemapToggle)=> {
+
+      esriConfig.apiKey = "AAPK5b4904cdbfe9434d8ea442d6d25a86bcGSh57y7u3oQJNuc2IoqIbR8ECGeKHsA_yzBPVGdIZSc4jQYKa1xJo3nNvUud57QI";
+      const map = new Map({
+        basemap: "arcgis-streets" //Basemap service
+      });
+
+      const view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center: [-78.323, 44.305], 
+        zoom: 13,
+        constraints: {
+          snapToZoom: false
+        }
+      });
+
+
+
+      // Variable point size
+      const sizeVV = {
+        type: "size",
+        valueExpression: "$view.scale",
+
+        stops: [
+          {size: 16, value: 500},
+          {size: 10, value: 1000},
+          {size: 7, value: 2000},
+          {size: 6, value: 4000},
+          {size: 5, value: 9000},
+          {size: 2.5, value: 18000},
+          {size: 1.5, value: 36000},
+        ]
+      };
+
+
+      //Symbolization
+      const colors = ["#03c04a", "#707070", "#4adede", "#ff7300", "#cc0000", "#4c2512", "#fcfbfc"];
+
+      const commonProperties = {
+        type: "simple-marker",
+        size: "6px",
+        outline: {
+          width: 0.5
+        },
+        style: "circle"
+      };
+
+      // Symbol for active trees
+      const ActiveSym = {
+        ...commonProperties,
+        color: colors[0]
+      };
+
+      // Symbol for removed trees
+      const RemovedSym = {
+        ...commonProperties,
+        color: colors[1]
+      };
+
+      // Symbol for EAB removal
+      const EABRemovalSym = {
+        ...commonProperties,
+        color: colors[2]
+      };
+
+      // Symbol for proposed trees
+      const ProposedSym = {
+        ...commonProperties,
+        color: colors[3]
+      };
+
+      const RefusalSym = {
+        ...commonProperties,
+        color: colors[4]
+      };
+
+      const ConstructionSym = {
+        ...commonProperties,
+        color: colors[5]
+      };
+      
+      // Symbol for re-surveyed trees
+      const otherSym = {
+        ...commonProperties,
+        color: colors[6]
+      };
+
+
+      const treeRenderer = {
+          type: "unique-value", // autocasts as new UniqueValueRenderer()
+          // legendOptions: {
+          //   title: "Tree Status"
+          // },
+          defaultSymbol: otherSym,
+          defaultLabel: "Others (Re-Surveyed/Development Removal/Planting Request/Pending Approval)",
+          field: "STATUS",
+
+          uniqueValueInfos: [
+            {
+              value: "Active", 
+              symbol: ActiveSym,
+              label: "Active"
+            },
+            {
+              value: "Removed", 
+              symbol: RemovedSym,
+              label: "Removed"
+            },
+            {
+              value: "EAB Removal", 
+              symbol: EABRemovalSym,
+              label: "EAB Removal"
+            },
+            {
+              value: "Proposed", 
+              symbol: ProposedSym,
+              label: "Proposed"
+            },
+            {
+              value: "Refusal", 
+              symbol: RefusalSym,
+              label: "Refusal"
+            },
+            {
+              value: "Construction Removal", 
+              symbol: ConstructionSym,
+              label: "Construction Removal"
+            }
+          ],
+
+          visualVariables: [sizeVV]
+
+        };
+
+
+      let treezoneRenderer = {
+        type: "simple",
+        symbol: {
+            type: "simple-fill"},
+            color: "rgba(80, 80, 80, 0.90)",
+            outline: {
+                width: 1,
+                color: "black"
+            }
+      }
+    
+
+
+
+      // Add legend ---obsolete
+      // let layerList = new LayerList({
+      //   view: view
+      // });
+      // // Adds widget below other elements in the top left corner of the view
+      // view.ui.add(layerList, {
+      //   position: "top-right"
+      // });
+
+
+
+      
+
+
+
+        
+
+      //pop-up template customization
+      const tree_template = {
+        // NAME and COUNTY are fields in the service containing the Census Tract (NAME) and county of the feature
+        title: "{COMMON} - {STATUS}",
+        content: [
+            {
+              type: "fields",
+              fieldInfos: [
+                {
+                  fieldName: "BOTONICAL",
+                  label: "Botanical Name"
+                },
+                {
+                  fieldName: "GENUS",
+                  label: "Genus"
+                },
+                {
+                  fieldName: "FAMILY",
+                  label: "Family"
+                },
+                {
+                  fieldName: "OWNERSHIP",
+                  label: "Ownership"
+                },
+                {
+                  fieldName: "STREET",
+                  label: "Street"
+                },
+                {
+                  fieldName: "ZONE",
+                  label: "Zone Number"
+                },
+                {
+                  fieldName: "ZONENAME",
+                  label: "Zone Name"
+                },
+                {
+                  fieldName: "TREE_LOCAT",
+                  label: "Tree Location"
+                },
+                {
+                  fieldName: "INVENTORY_",
+                  label: "Inventory"
+                },
+                {
+                  fieldName: "DBH",
+                  label: "Diameter at Breast Height"
+                },
+                {
+                  fieldName: "PHYS_COND",
+                  label: "Physical Condition"
+                }
+                // {
+                //   fieldName: "B12001_calc_numDivorcedE",
+                //   label: "People Divorced",
+                //   format: {
+                //     digitSeparator: true,
+                //     places: 0
+                //   }
+                // }
+              ]
+            }
+          ]
+      };
+
+
+
+      // const ppa_template = {
+      //   // NAME and COUNTY are fields in the service containing the Census Tract (NAME) and county of the feature
+      //   title: "Bylaw Zoning: {ByLaw}",
+      //   content: [
+      //       {
+      //         type: "fields",
+      //         fieldInfos: [
+      //           {
+      //             fieldName: "ZONENUMBER",
+      //             label: "Tree Zone Number"
+      //           },
+      //           {
+      //             fieldName: "ZONENAME",
+      //             label: "Tree Zone Name"
+      //           },
+      //           {
+      //             fieldName: "ADDRESS",
+      //             label: "Address"
+      //           }
+      //           // {
+      //           //   fieldName: "Shape_area",
+      //           //   label: "Area"
+      //           //   // format: {
+      //           //   //   digitSeparator: true,
+      //           //   //   places: 0
+      //           //   // }
+      //           // }
+      //         ]
+      //       }
+      //     ]
+      // };
+
+
+      //Add feature layers
+      // const ppaLayer = new FeatureLayer({
+      //   url: "https://services1.arcgis.com/pMeXRvgWClLJZr3s/arcgis/rest/services/tentative_ppa_layer/FeatureServer",
+      //   popupTemplate: ppa_template
+      // });
+      // map.add(ppaLayer);
+
+
+
+      const treezoneLayer = new FeatureLayer({
+        title: "Tree Zones",
+        url: "https://services1.arcgis.com/pMeXRvgWClLJZr3s/arcgis/rest/services/Tree_Zone/FeatureServer",
+        popupTemplate: treezone_template,
+        renderer: treezoneRenderer
+      });
+      map.add(treezoneLayer);
+
+      const treeLayer = new FeatureLayer({
+        title: "Tree Inventory",
+        url: "https://services1.arcgis.com/pMeXRvgWClLJZr3s/arcgis/rest/services/tree_inventory_layer/FeatureServer",
+        popupTemplate: tree_template,
+        renderer: treeRenderer
+      });
+      map.add(treeLayer);
+
+      
+
+      //Add legend for tree inventory
+      const legend = new Expand({
+        content: new Legend({
+          view: view,
+          style: "classic" // other styles include 'card'
+          // layerInfos: [
+          //   {
+          //     layer: treeLayer
+          //   }
+          // ]
+        }),
+        expanded: true
+      });
+      view.ui.add(legend, "bottom-left");
+
+
+
+      //Add basemap toggle
+      let basemapToggle = new BasemapToggle({
+        view: view,
+        nextBasemap: "satellite"
+      });
+      view.ui.add(basemapToggle, "bottom-right")
+
+
+
+      //Add Scale Bar
+      let scaleBar = new ScaleBar({
+        view: view
+      });
+      //Add widget to view
+      view.ui.add(scaleBar, {
+        position: "bottom-right"
+      });
+
+
+
+      //Add Home Button
+      let homeButton = new Home({
+        view: view
+      });
+      //Add home button to view
+      view.ui.add(homeButton, "top-left");
+
+
+
+      //Add layer list
+      const layerList = new LayerList({
+        container: document.createElement("div"),
+        view: view
+      });
+      const layerListExpand = new Expand({
+        expandIcon: "layers",  // see https://developers.arcgis.com/calcite-design-system/icons/
+        // expandTooltip: "Expand LayerList", // optional, defaults to "Expand" for English locale
+        view: view,
+        content: layerList
+      });
+      view.ui.add(layerListExpand, "top-left");
+
+
+
+
+    });
+
+
+    const arcadeScript = document.getElementById("trees-arcade").text;
+
+    const arcadeChart = document.getElementById("trees-chart").text;
+
+    const treezone_template = {
+      title: "Tree Zone {ZONENUMBER}: {ZONENAME}",
+      content: [{
+        type: "expression",
+        expressionInfo: {
+          expression: arcadeChart
+        }
+      }, {
+        type: "expression",
+        expressionInfo: {
+          expression: arcadeScript
+            }
+        }]
+    };
+
+
+</script>
+
+
+
+</head>
+<body>
+  <div class="box">
+    <div class="Heading">
+      <img src="https://images.squarespace-cdn.com/content/v1/54ff0a95e4b081b61d83e3b2/1537462044541-PQ3VHI7CPB485EH61IJW/City+of+Peterborough+-+Banner.jpg" alt="Peterborough Banner" class="center">
+    </div>
+    <div id="viewDiv"></div>
+</div>
+</body>
+</html>
