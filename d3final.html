@@ -1,0 +1,799 @@
+<!-- Configured using ArcGIS Maps SDK for JavaScript-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deliverable 3 Final Version</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        height: 91%;
+        width: 100%;
+      }
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        overflow: hidden;}
+        :root {
+        --bgcolor: white;
+        }
+        * {
+        margin: 0;
+        padding: 0;
+        }
+        .page-header {
+        background-color: var(--bgcolor);
+        padding: 0.1rem;
+        display: flex;
+        justify-content: space-between;
+        }
+        .logo {
+        color: white;
+        align-self: center;
+        margin-left: 0.5rem;
+        font-size: 2rem;
+        }
+        .header-right {
+          margin: auto;
+        }
+        .nav-bar {
+        margin: auto;
+        }
+        .nav-bar a {
+        color: #0A2472;
+        padding: 0.5rem;
+        cursor: pointer;
+        text-decoration: none; 
+        font-size: 1.2rem;
+        }
+        .menu-icon {
+        color: #0A2472;
+        cursor: pointer;
+        display: none;
+        margin: auto;
+        margin-left: 8%;
+        font-size: 25px;
+        }
+        button {
+        font-size: 1rem;
+        cursor: pointer;
+        border: 1px solid #0A2472;
+        border-radius: 6px;
+        padding: 0.9rem;
+        color: #0A2472;
+        background-color: white;
+        font-family: "Avenir Next";
+        }
+        button:hover {
+          background-color: #0A2472;
+          color:white;
+        }
+
+        .header-title {
+          margin: auto;
+          font-weight: bold;
+          color: #0A2472;
+          font-size: 2rem;
+        }
+
+        ul {
+            margin-top: 1px;
+            margin-bottom: 1px;
+            margin-left: 5px;
+        }
+
+        li {
+            margin-top: 1px;
+            margin-bottom: 1px;
+            margin-left: 5px;
+        }
+        
+
+        @media screen and (max-width: 1070px) {
+            .nav-bar {
+                display: none;
+                position: absolute;
+                top: 5.7rem;
+                left: 0%;
+                width: 99.8%;
+                background-color: var(--bgcolor);
+                text-align: center;
+                border-style: solid;
+                border-radius: 2px;
+                border-color: grey;
+                border-width: 0.5px;
+            }
+            .nav-bar.responsive {
+                display: block;
+                z-index: 1;
+            }
+            .nav-bar a {
+                display: block;
+            }
+            .menu-icon {
+                display: block;
+                z-index: 1;
+                margin: auto;
+            }
+            button {
+                padding: 0.4rem;
+            }
+            .logo {
+                font-size: 1.4rem;
+            }
+
+            .header-title {
+              display: none;
+            }
+
+            #disclaimer {
+                text-align: center;
+                margin-top: 1%;
+                font-size: 0.5rem;
+                line-height: 1;
+                margin: auto;
+            }
+
+            html,
+            body {
+                padding: 0;
+                margin: 0;
+                height: 87%;
+                width: 100%;
+            }
+
+            /* #maptitle {
+            line-height: 100%;
+          } */
+
+        }
+        
+        a:hover{
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+        }
+        
+        #disclaimer {
+        text-align: center;
+        margin-top: 1%;
+        font-size: 0.7rem;
+        line-height: 1;
+        margin: auto;
+        }
+        
+            /* code for modal button */
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 2;
+          padding-top: 100px; /* Location of the box */
+          left: 0;
+          top: 0;
+          width: 100%; /* Full width */
+          height: 100%; /* Full height */
+          overflow: auto; /* Enable scroll if needed */
+          background-color: rgb(0,0,0); /* Fallback color */
+          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+          /* Modal Content */
+          .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 15px;
+            border: 1px solid #888;
+            width: 80%;
+            overflow-y: auto;
+            margin-bottom: 20%;
+          }
+          /* The Close Button */
+          .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+          }
+          .close:hover,
+          .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+          }
+          /* styling the list */
+          ul {
+            margin: 20px;
+          }
+/* 
+          #maptitle {
+            line-height: 300%;
+          } */
+
+          .underline {
+            text-decoration: underline;
+          }
+        
+          /* Loading screen styling */
+          .loader {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: inline-block;
+          border-top: 3px solid #0A2472;
+          border-right: 3px solid transparent;
+          box-sizing: border-box;
+          animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        } 
+            
+        #loading {
+          position: fixed;
+          display: block;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          text-align: center;
+          background-color: #fff;
+          z-index: 99;
+        }
+
+
+        #loading-animation {
+          position: absolute;
+          top: 45%;
+          left: 47%;
+          z-index: 100;
+        }
+
+        #loading-banner {
+            position: absolute;
+            top: 90%;
+            right: 1%;
+            z-index: 100;
+        }
+    </style>
+    
+<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.29/"></script>
+<script type="text/arcgis-arcade" id="trees-arcade">
+  var attributes = {};
+  var fieldInfos = [];
+  // Query the number of crimes that intersect a selected polygon
+  var trees = Intersects(
+    $feature,
+    FeatureSetByName($map,"City of Peterborough Trees", ["COMMON"])
+  );
+  // Queries the count of trees grouped by the "COMMON" field
+  var stats = GroupBy(trees, ["COMMON"],
+    [{ name: "total", expression: "1", statistic: "count" }]
+  );
+  // Orders the results in descending order by the total count
+  // excludes trees that don't have a classification
+  var topTrees = Top(OrderBy(Filter(stats, "COMMON <> ''"), "total COMMON"), 5);
+  for(var item in topTrees){
+    var num_trees = item.total;
+    var treeType = item["COMMON"];
+    attributes[treeType] = num_trees;
+    Push(fieldInfos, {
+      fieldName: treeType
+    });
+  }
+  return {
+    type: "fields",
+    fieldInfos: fieldInfos,
+    attributes: attributes
+  };
+</script>
+
+<script type="text/arcgis-arcade" id="trees-chart">
+  var attributes = {};
+  var totalFields = [];
+  // Query the number of trees that intersect a selected tree zone
+  var trees = Intersects(
+    $feature,
+    FeatureSetByName($map,"City of Peterborough Trees", ["COMMON", "OWNERSHIP", "STATUS"])
+  );
+  // Queries the count of tree grouped by the "COMMON" field
+  var stats = GroupBy(trees, ["COMMON"],
+    [
+      { name: "total", expression: "1", statistic: "count" }
+    ]
+  );
+  // Orders the results in descending order by the total count
+  // excludes trees that don't have a classification
+  var topTrees = Top(OrderBy(Filter(stats, "COMMON <> ''"), "total COMMON"), 5);
+  if(Count(topTrees) == 0){
+    return {
+      type: "text",
+      text: "No trees in this zone"
+    };
+  }
+  var i = 0;
+  for(var t in topTrees){
+    i++;
+    var type = t.COMMON;
+    attributes[type] = t.total;
+    Push(totalFields, type);
+  }
+  return {
+    type: "media",
+    attributes: attributes,
+    title: "Top 5 Tree Species",
+    mediaInfos: [{
+      type: "piechart",
+      value: {
+        fields: totalFields
+      }
+    }]
+  };
+</script>
+
+<script type="text/javascript">
+  require([
+    "esri/config",
+    "esri/Map",
+    "esri/views/MapView",
+    "esri/layers/FeatureLayer",
+    "esri/widgets/LayerList",
+    "esri/widgets/Expand",
+    "esri/widgets/Legend",
+    "esri/widgets/ScaleBar",
+    "esri/widgets/Home",
+    "esri/widgets/BasemapToggle"
+  ],(esriConfig, Map, MapView, FeatureLayer, LayerList, Expand, Legend, ScaleBar, Home, BasemapToggle)=> {
+    esriConfig.apiKey = "AAPKd28208381e864425aab14cadb078d283otBG0P_SO-yGFf1ln4H-cSErIbogrjxKjt377ibjvhMBTFe-d4e77alwEDndgeI2";
+    const map = new Map({
+      basemap: "arcgis-streets" //Basemap service
+    });
+    const view = new MapView({
+      container: "viewDiv",
+      map: map,
+      center: [-78.323, 44.305], 
+      zoom: 13,
+      constraints: {
+        snapToZoom: false
+      }
+    });
+
+    //SQL tree filter (data: tree inventory) 
+    // Create a UI with the filter expressions
+    const sqlExpressions = [
+        { text: "Filter by Tree Status..."},
+        { value: "Status = 'Active'", text: "Active Trees"},
+        { value: "Status = 'Removed'", text: "Removed Trees"},
+        { value: "Status = 'EAB Removal'", text: "EAB Removal Trees"},
+        { value: "Status = 'Proposed'", text: "Proposed Trees"},
+        { value: "Status = 'Re-Surveyed'", text: "Re-Surveyed Trees"},
+        { value: "Status = 'Construction Removal'", text: "Trees Removed for Construction"},
+        { value: "Status = 'Development Removal'", text: "Trees Removed for Development"},
+        { value: "1=1", text: "All Tree Statuses"}
+    ]
+   
+    // UI for SQL tree filter
+    const selectFilter = document.createElement("select");
+    selectFilter.setAttribute("class", "esri-widget esri-select");
+    selectFilter.setAttribute("style", "width: 275px; font-family: Avenir Next; font-size: 1em;");
+    sqlExpressions.forEach(function (sql) {
+      let option = document.createElement("option");
+      option.value = sql.value;
+      option.text = sql.text
+      selectFilter.appendChild(option);
+    });
+    view.ui.add(selectFilter, "top-right");
+    //SQL Server-side filter & event listener
+    function setFeatureLayerFilter(expression) {
+      treeLayer.definitionExpression = expression;
+    }
+
+    // Event listener for SQL tree filter
+    selectFilter.addEventListener('change', function (event) {
+      setFeatureLayerFilter(event.target.value);
+    });  
+
+
+    //Symbolization
+    const colors = ["#03c04a", "#707070", "#4adede", "#ff7300", "#4c2512", "#e6cc00", "#a020f0"];
+    const commonProperties = {
+      type: "simple-marker",
+      size: "10px",
+      outline: {
+        width: 0.5
+      },
+      style: "circle"
+    };
+    // Symbol for active trees
+    const ActiveSym = {
+      ...commonProperties,
+      color: colors[0]
+    };
+    // Symbol for removed trees
+    const RemovedSym = {
+      ...commonProperties,
+      color: colors[1]
+    };
+    // Symbol for EAB removal
+    const EABRemovalSym = {
+      ...commonProperties,
+      color: colors[2]
+    };
+    // Symbol for proposed trees
+    const ProposedSym = {
+      ...commonProperties,
+      color: colors[3]
+    };
+    // Symbol for re-surveyed trees    
+    const ResurveyedSym = {
+      ...commonProperties,
+      color: colors[4]
+    };
+    //Symbol for Construction Removal Trees
+    const ConstructionSym = {
+      ...commonProperties,
+      color: colors[5]
+    };
+    
+    // Symbol for re-surveyed trees
+    const DevRemovalSym = {
+      ...commonProperties,
+      color: colors[6]
+    };
+    //Symbol for 
+    const otherSym = {
+      ...commonProperties,
+      size: "0px"
+    };
+    const treeRenderer = {
+        type: "unique-value", // autocasts as new UniqueValueRenderer()
+
+        defaultSymbol: otherSym,
+        defaultLabel: "* This map will be constantly updated with additional trees",
+        field: "STATUS",
+        uniqueValueInfos: [
+          {
+            value: "Active", 
+            symbol: ActiveSym,
+            label: "Active Trees"
+          },
+          {
+            value: "Removed", 
+            symbol: RemovedSym,
+            label: "Removed Trees"
+          },
+          {
+            value: "EAB Removal", 
+            symbol: EABRemovalSym,
+            label: "EAB Removal Trees"
+          },
+          {
+            value: "Proposed", 
+            symbol: ProposedSym,
+            label: "Proposed Trees"
+          },
+          {
+            value: "Re-Surveyed", 
+            symbol: ResurveyedSym,
+            label: "Re-Surveyed Trees"
+          },
+          {
+            value: "Construction Removal", 
+            symbol: ConstructionSym,
+            label: "Trees removed for Construction"
+          },
+          {
+            value: "Development Removal", 
+            symbol: DevRemovalSym,
+            label: "Trees removed for Development"
+          }, 
+        ],
+
+      };
+    let treezoneRenderer = {
+      type: "simple",
+      symbol: {
+          type: "simple-fill"},
+          color: "rgba(80, 80, 80, 0.90)",
+          outline: {
+              width: 1,
+              color: "black"
+              }
+      }
+  
+      
+    //pop-up template customization
+    const tree_template = {
+      title: "{COMMON} ({STATUS})",
+      content: [
+          {
+            type: "fields",
+            fieldInfos: [
+              {
+                fieldName: "FACILITYID",
+                label: "Facility ID"
+              },
+              {
+                fieldName: "STATUS",
+                label: "Status"
+              },
+              {
+                fieldName: "STREET",
+                label: "Street"
+              },
+              {
+                fieldName: "OWNERSHIP",
+                label: "Ownership"
+              },
+              {
+                fieldName: "ZONE",
+                label: "Zone Number"
+              },
+              {
+                fieldName: "TREE_LOCAT",
+                label: "Tree Location"
+              },
+              {
+                fieldName: "INVENTORY",
+                label: "Inventory Location"
+              },
+              {
+                fieldName: "BOTANICAL",
+                label: "Scientific Name"
+              },
+              {
+                fieldName: "COMMON",
+                label: "Common Name"
+              },
+              {
+                fieldName: "GENUS",
+                label: "Genus"
+              },
+              {
+                fieldName: "FAMILY",
+                label: "Family"
+              },
+              {
+                fieldName: "EAB",
+                label: "EAB"
+              },
+              {
+                fieldName: "DBH",
+                label: "DBH (cm)"
+              },
+              {
+                fieldName: "STR_COND",
+                label: "Structural Condition"
+              },
+              {
+                fieldName: "PHYS_COND",
+                label: "Physical Condition"
+              }
+            ]
+          }
+        ]
+    };
+
+    const treezoneLayer = new FeatureLayer({
+      title: "City of Peterborough Tree Zones",
+      url: "https://services1.arcgis.com/JOTjMnANji9YTrZ2/arcgis/rest/services/Tree_Zones/FeatureServer",
+      popupTemplate: treezone_template,
+      renderer: treezoneRenderer
+    });
+    //Set the maximum scale for tree zone to display on the web map
+    treezoneLayer.maxScale = 30000;
+    
+    map.add(treezoneLayer);
+    const treeLayer = new FeatureLayer({
+      title: "City of Peterborough Trees",
+      url: "https://services1.arcgis.com/JOTjMnANji9YTrZ2/arcgis/rest/services/ptbo_tree_inventory/FeatureServer",
+      popupTemplate: tree_template,
+      renderer: treeRenderer,
+      //  Comment out or delete the next line to only show all tree statuses instead of only active trees when the page initializes
+      definitionExpression: "Status = 'Active'"
+    });
+    
+    map.add(treeLayer);
+    //Set the minimum scale for tree inventory to display on the web map
+    treeLayer.minScale = 30000;
+    
+    
+    //Add legend for tree inventory
+    const legend = new Expand({
+      content: new Legend({
+        view: view,
+        respectLayerVisibility: false,
+        style: "classic" // other styles include 'card'
+      }),
+      expanded: false
+    });
+    view.ui.add(legend, "bottom-left");
+
+    //Add basemap toggle
+    let basemapToggle = new BasemapToggle({
+      view: view,
+      nextBasemap: "satellite"
+    });
+    view.ui.add(basemapToggle, "bottom-right")
+
+    //Add Scale Bar
+    let scaleBar = new ScaleBar({
+      view: view
+    });
+    //Add widget to view
+    view.ui.add(scaleBar, {
+      position: "bottom-right"
+    });
+
+    //Add Home Button
+    let homeButton = new Home({
+      view: view
+    });
+    //Add home button to view
+    view.ui.add(homeButton, "top-left");
+
+    //Add layer list
+    const layerList = new LayerList({
+      container: document.createElement("div"),
+      view: view
+    });
+    const layerListExpand = new Expand({
+      expandIcon: "layers",  // see https://developers.arcgis.com/calcite-design-system/icons/
+      // expandTooltip: "Expand LayerList", // optional, defaults to "Expand" for English locale
+      view: view,
+      content: layerList
+    });
+    view.ui.add(layerListExpand, "top-left");
+    });
+    const arcadeScript = document.getElementById("trees-arcade").text;
+    const arcadeChart = document.getElementById("trees-chart").text;
+    const treezone_template = {
+      title: "Tree Zone {ZONENUMBER}: {ZONENAME}",
+      content: [{
+        type: "expression",
+        expressionInfo: {
+          expression: arcadeChart
+        }
+      }, {
+        type: "expression",
+        expressionInfo: {
+          expression: arcadeScript
+            }
+        }]
+    };
+</script>
+  <script>
+      function onMenuClick() {
+          var navbar = document.getElementById("navigation-bar");
+          var responsive_class_name = "responsive";
+          navbar.classList.toggle(responsive_class_name);
+      }
+  </script>
+
+  </head>
+  <body>
+    <!-- Loading screen -->
+    <div id="loading">
+      <span class="loader" id="loading-animation"></span>
+    </div>
+    <!-- Header -->
+    <div class="page-header">
+      <div class="logo">
+        <a href="https://www.peterborough.ca/en/index.aspx" id="left-header">
+          <img src="https://ptbo.maps.arcgis.com/sharing/rest/content/items/b23174d35a14499d8e4e05e3ebd538a2/data" alt="Peterborough Banner">
+        </a>
+      </div>
+      <div class="header-title">
+        <p>Tree Map</p>
+      </div>
+      <a id="menu-icon" class="menu-icon" onclick="onMenuClick()">
+        <i class="fa fa-bars"></i>
+      </a>
+      <div id="navigation-bar" class="nav-bar">
+        <a href="https://www.peterborough.ca/en/city-hall/urban-forestry-trees.aspx" class="active">City Trees</a>
+        <a href="https://forms.peterborough.ca/Urban-Forestry/Tree-Planting-Request">Tree Request</a>
+        <a href="https://forms.peterborough.ca/Communications/Report-a-problem/Report-a-problem-online">Service Request</a>
+        <a href="https://www.peterborough.ca/en/city-services/maps.aspx">Other Maps</a>
+      </div>
+      <div class="header-right"><button id="myBtn">How To Use</button></div>
+      <div id="MyModal" class="modal">
+        <!-- Modal content -->
+          <!-- Modal content -->
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>
+                HOW TO USE:
+            </h3>
+            <p class="underline">
+                General Navigation
+            </p>
+            <ul>
+                <li>
+                    Zoom in and click on any point to view individual tree information.
+                </li>
+                <li>
+                    Zoom out and click on any tree zone to view tree statistics.
+                </li>     
+            </ul>
+            <p class="underline">
+                Map Legend
+            </p>  
+            <ul>
+                <li>
+                    The map legend can be opened by the icon located at the bottom left of the map.
+                </li>  
+            </ul>
+            <p class="underline">
+                Layers and Filter
+            </p>
+            <ul>
+                <li>
+                    The layers (tree and tree zone) can be set to be visible or invisible by accessing the layer list through the icon below the home button. 
+                </li>       
+                <li>
+                    The filter (located at the top right of the map) can be used to show trees of a particular status and their statistics at tree-zone level.
+                </li>
+            </ul>
+            <p>
+                To return to the map, click the close button or anywhere outside this box.
+            </p>
+          </div>
+      </div>
+      <!-- Hot to button script -->
+      <script>
+      // Get the modal
+      var modal = document.getElementById("MyModal");
+      
+      // Get the button that opens the modal
+      var btn = document.getElementById("myBtn");
+      
+      // Get the <span> element that closes the modal
+      var span = document.getElementsByClassName("close")[0];
+      
+      // When the user clicks the button, open the modal 
+      btn.onclick = function() {
+        modal.style.display = "block";
+      }
+      
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function() {
+        modal.style.display = "none";
+      }
+      
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+      </script>
+    </div>
+    <div id="viewDiv"></div>
+    <div id="disclaimer">
+      <p>
+        DISCLAIMER and LIMITATIONS OF LIABILITIES:
+        The City of Peterborough has used reasonable efforts to provide the information contained in this site, however, the City (1) provides no warranty concerning its accuracy or fitness for any intended purpose (2) accepts no liability of any kind which may arise from its use or misuse or from any information being incorrect, incomplete or misleading.
+        The maps are only intended to provide basic information to the general public. Any party interested in using the City of Peterborough's mapping for commercial use must contact the Manager of the Geomatics/Mapping Division to arrange for payment and to sign a formal User Agreement. All rights reserved. 
+      </p>
+    </div>
+    <!-- Loading screen jquery script -->
+    <script>
+      $(window).on('load', function () {
+        $('#loading').hide();
+      })
+    </script>
+  </body>
+</html>
