@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Peterborough Tree Map </title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
@@ -160,7 +160,7 @@
         }
         
         a:hover{
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         #disclaimer {
@@ -268,6 +268,11 @@
             right: 1%;
             z-index: 100;
         }
+
+        #status-text {
+          text-align: center;
+          font-weight: bold;
+        }
     </style>
     
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
@@ -322,7 +327,7 @@
   if(Count(topTrees) == 0){
     return {
       type: "text",
-      text: "No trees in this zone"
+      text: "No selected trees in this zone"
     };
   }
   var i = 0;
@@ -335,7 +340,7 @@
   return {
     type: "media",
     attributes: attributes,
-    title: "Top 5 Tree Species",
+    title: "Top 5 Tree Species for current selection",
     mediaInfos: [{
       type: "piechart",
       value: {
@@ -372,41 +377,68 @@
       }
     });
 
-    //SQL tree filter (data: tree inventory) 
-    // Create a UI with the filter expressions
+
+
     const sqlExpressions = [
-        { text: "Filter by Tree Status..."},
-        { value: "Status = 'Active'", text: "Active Trees"},
-        { value: "Status = 'Removed'", text: "Removed Trees"},
-        { value: "Status = 'EAB Removal'", text: "EAB Removal Trees"},
-        { value: "Status = 'Proposed'", text: "Proposed Trees"},
-        { value: "Status = 'Re-Surveyed'", text: "Re-Surveyed Trees"},
-        { value: "Status = 'Construction Removal'", text: "Trees Removed for Construction"},
-        { value: "Status = 'Development Removal'", text: "Trees Removed for Development"},
-        { value: "1=1", text: "All Tree Statuses"}
-    ]
-   
-    // UI for SQL tree filter
+        { value: "1=0", text: "Select by Tree Status...", displayText: "(no tree status chosen)", color: "black"},
+        { value: "Status = 'Active'", text: "Active Trees", color: "#03c04a"},
+        { value: "Status = 'Removed'", text: "Removed Trees", color: "#707070"},
+        { value: "Status = 'EAB Removal'", text: "EAB Removal Trees", color: "#4adede"},
+        { value: "Status = 'Proposed'", text: "Proposed Trees", color: "#ff7300"},
+        { value: "Status = 'Re-Surveyed'", text: "Re-Surveyed Trees", color: "#4c2512"},
+        { value: "Status = 'Construction Removal'", text: "Trees Removed for Construction", color: "#e6cc00"},
+        { value: "Status = 'Development Removal'", text: "Trees Removed for Development", color: "#a020f0"},
+        { value: "1=1", text: "All Tree Statuses", color: "black"}
+    ];
+
+    // Function to set feature layer filter
+    function setFeatureLayerFilter(expression) {
+        treeLayer.definitionExpression = expression;
+    }
+
+    // Create select dropdown
     const selectFilter = document.createElement("select");
     selectFilter.setAttribute("class", "esri-widget esri-select");
-    selectFilter.setAttribute("style", "width: 275px; font-family: Avenir Next; font-size: 1em;");
+    selectFilter.setAttribute("style", "height: 50px; width: 350px; font-family: Avenir Next; font-size: 1.5em;");
+
+    // Get reference to the status-text container
+    const statusTextContainer = document.getElementById('status-text'); // Assuming there's a div with id 'status-text' in your HTML
+
+    // Populate select dropdown
     sqlExpressions.forEach(function (sql) {
-      let option = document.createElement("option");
-      option.value = sql.value;
-      option.text = sql.text
-      selectFilter.appendChild(option);
+        let option = document.createElement("option");
+        option.value = sql.value || "";
+        option.text = sql.text;
+        selectFilter.appendChild(option);
+
+        // Set initial selection to "Select by Tree Status..."
+        if (sql.text === "Select by Tree Status...") {
+            option.selected = true;
+        }
     });
+
+    // Add select dropdown to UI
     view.ui.add(selectFilter, "top-right");
-    //SQL Server-side filter & event listener
-    function setFeatureLayerFilter(expression) {
-      treeLayer.definitionExpression = expression;
-    }
 
     // Event listener for SQL tree filter
     selectFilter.addEventListener('change', function (event) {
-      setFeatureLayerFilter(event.target.value);
-    });  
+        const selectedOption = sqlExpressions.find(sql => sql.value === event.target.value);
+        if (selectedOption) {
+            setFeatureLayerFilter(selectedOption.value);
+            // Update text in statusTextContainer
+            if (selectedOption.text === "Select by Tree Status...") {
+                statusTextContainer.innerHTML = "<span style='color: black;'>Current selection:</span> " + selectedOption.displayText;
+            } else {
+                statusTextContainer.innerHTML = "<span style='color: black;'>Current selection:</span> " + selectedOption.text;
+            }
+            // Update color based on selected option
+            statusTextContainer.style.color = selectedOption.color;
+        }
+    });
 
+    // Initialize statusTextContainer with default text
+    statusTextContainer.innerHTML = "<span style='color: black;'>Current selection:</span> Active Trees";
+    statusTextContainer.style.color = "#03c04a"; // Green color for "Active Trees"
 
     //Symbolization
     const colors = ["#03c04a", "#707070", "#4adede", "#ff7300", "#4c2512", "#e6cc00", "#a020f0"];
@@ -781,6 +813,9 @@
         }
       }
       </script>
+    </div>
+    <div id="status-text">
+      <p> Currently displaying: </p> 
     </div>
     <div id="viewDiv"></div>
     <div id="disclaimer">
